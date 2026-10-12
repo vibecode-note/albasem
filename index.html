@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>알바셈 · 주휴수당 계산기</title>
+<meta name="description" content="시급과 주 근무시간만 넣으면 주휴수당과 이번 달 월급이 바로 나와요. 2026 최저시급 기준.">
+<meta name="theme-color" content="#0E1525">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="알바셈">
+<meta property="og:title" content="알바셈 · 주휴수당 계산기">
+<meta property="og:description" content="시급과 주 근무시간만 넣으면 주휴수당과 월급이 바로 나와요.">
+<meta property="og:image" content="https://vibecode-note.github.io/albasem/icons/og.png">
+<meta property="og:url" content="https://vibecode-note.github.io/albasem/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+:root {
+  --bg: #F3F5F9; --card: #FFFFFF; --ink: #0E1525; --sub: #667085; --faint: #98A2B3; --line: #E7EAF0; --field: #F5F7FA;
+  --navy: #0E1525; --lime: #C6F135; --lime-ink: #0E1525;
+  --ok: #12B76A; --ok-bg: #ECFDF3; --warn: #DC6803; --warn-bg: #FFF6E5; --info: #1570EF; --info-bg: #EFF6FF; --bad: #D92D20; --bad-bg: #FEF3F2;
+  --r: 22px; --shadow: 0 1px 2px rgba(16,24,40,.04), 0 8px 24px rgba(16,24,40,.06);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #090D14; --card: #131924; --ink: #F2F4F7; --sub: #A3ADBD; --faint: #6B7585; --line: #232B38; --field: #1B2230;
+    --ok-bg: #0F2A1E; --warn-bg: #2E2110; --info-bg: #0F2140; --bad-bg: #331512; --shadow: none;
+  }
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html { background: var(--bg); }
+body {
+  margin: 0; min-height: 100dvh; background: var(--bg); color: var(--ink);
+  font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  font-feature-settings: 'tnum'; letter-spacing: -0.01em;
+}
+.app { max-width: 440px; margin: 0 auto; padding: calc(env(safe-area-inset-top) + 12px) 16px calc(env(safe-area-inset-bottom) + 28px); }
+
+/* 상단 */
+.top { display: flex; align-items: center; gap: 12px; padding: 6px 4px 16px; }
+.top img { width: 40px; height: 40px; border-radius: 11px; }
+.top h1 { margin: 0; font-size: 20px; font-weight: 800; letter-spacing: -0.03em; }
+.top p { margin: 1px 0 0; font-size: 13px; color: var(--sub); }
+.install { margin-left: auto; border: 0; background: var(--lime); color: var(--lime-ink); font: inherit; font-size: 13px; font-weight: 700; padding: 8px 12px; border-radius: 999px; cursor: pointer; }
+
+/* 결과 카드 */
+.hero { position: sticky; top: calc(env(safe-area-inset-top) + 8px); z-index: 5; background: var(--navy); color: #fff; border-radius: var(--r); padding: 20px 22px 18px; box-shadow: 0 12px 32px rgba(14,21,37,.28); overflow: hidden; }
+.hero::after { content: ''; position: absolute; right: -60px; top: -60px; width: 180px; height: 180px; border-radius: 50%; background: radial-gradient(circle, rgba(198,241,53,.28), transparent 70%); pointer-events: none; }
+.hero .label { font-size: 13px; color: #B8C0CC; display: flex; justify-content: space-between; align-items: center; }
+.hero .label b { font-weight: 600; color: var(--lime); }
+.hero .big { font-size: 40px; font-weight: 800; letter-spacing: -0.04em; margin: 4px 0 14px; line-height: 1.1; }
+.hero .big small { font-size: 22px; font-weight: 700; margin-left: 2px; }
+.hero .row { display: flex; gap: 8px; }
+.hero .pill { flex: 1; background: rgba(255,255,255,.07); border-radius: 14px; padding: 10px 12px; }
+.hero .pill span { display: block; font-size: 12px; color: #9AA4B2; }
+.hero .pill strong { font-size: 17px; font-weight: 700; }
+.hero .pill.lime strong { color: var(--lime); }
+
+/* 카드 공통 */
+.card { background: var(--card); border-radius: var(--r); padding: 20px; margin-top: 14px; box-shadow: var(--shadow); }
+.field-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.field-head label { font-size: 14px; font-weight: 600; color: var(--sub); }
+.chip-btn { border: 0; background: var(--field); color: var(--ink); font: inherit; font-size: 12px; font-weight: 600; padding: 6px 10px; border-radius: 999px; cursor: pointer; }
+.chip-btn.on { background: var(--lime); color: var(--lime-ink); }
+.input { display: flex; align-items: center; background: var(--field); border-radius: 16px; padding: 0 16px; height: 60px; border: 2px solid transparent; transition: border-color .15s; }
+.input:focus-within { border-color: var(--ink); }
+.input input { flex: 1; min-width: 0; border: 0; background: none; outline: none; color: var(--ink); font: inherit; font-size: 24px; font-weight: 700; letter-spacing: -0.02em; }
+.input span { font-size: 16px; color: var(--faint); font-weight: 600; }
+.gap { height: 22px; }
+
+.hours { display: flex; align-items: center; gap: 10px; }
+.step { width: 52px; height: 60px; flex: none; border: 0; border-radius: 16px; background: var(--field); color: var(--ink); font-size: 26px; font-weight: 500; cursor: pointer; }
+.step:active, .chip:active, .chip-btn:active { transform: scale(.96); }
+.hours .input { flex: 1; justify-content: center; }
+.hours .input input { text-align: right; flex: 0 1 auto; width: 3.2ch; }
+.hours .input span { margin-left: 4px; }
+
+input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 28px; margin: 14px 0 4px; background: none; cursor: pointer; }
+input[type=range]::-webkit-slider-runnable-track { height: 8px; border-radius: 8px; background: linear-gradient(90deg, var(--ink) var(--p, 0%), var(--line) var(--p, 0%)); }
+input[type=range]::-moz-range-track { height: 8px; border-radius: 8px; background: linear-gradient(90deg, var(--ink) var(--p, 0%), var(--line) var(--p, 0%)); }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 28px; height: 28px; margin-top: -10px; border-radius: 50%; background: var(--lime); border: 4px solid var(--card); box-shadow: 0 2px 8px rgba(0,0,0,.25); }
+input[type=range]::-moz-range-thumb { width: 22px; height: 22px; border-radius: 50%; background: var(--lime); border: 4px solid var(--card); box-shadow: 0 2px 8px rgba(0,0,0,.25); }
+.ticks { display: flex; justify-content: space-between; font-size: 11px; color: var(--faint); padding: 0 4px; }
+.chips { display: flex; gap: 8px; margin-top: 14px; }
+.chip { flex: 1; border: 0; height: 40px; border-radius: 12px; background: var(--field); color: var(--ink); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; transition: background .15s; }
+.chip.on { background: var(--ink); color: var(--card); }
+
+.status { display: flex; gap: 10px; align-items: flex-start; border-radius: 14px; padding: 12px 14px; margin-top: 16px; font-size: 14px; line-height: 1.45; font-weight: 500; }
+.status i { font-style: normal; font-size: 16px; line-height: 1.3; }
+.status.ok { background: var(--ok-bg); color: var(--ok); }
+.status.warn { background: var(--warn-bg); color: var(--warn); }
+.status.info { background: var(--info-bg); color: var(--info); }
+.status.bad { background: var(--bad-bg); color: var(--bad); }
+.status b { font-weight: 800; }
+
+/* 옵션 */
+.seg { display: flex; background: var(--field); border-radius: 14px; padding: 4px; }
+.seg button { flex: 1; border: 0; background: none; color: var(--sub); font: inherit; font-size: 14px; font-weight: 600; height: 40px; border-radius: 11px; cursor: pointer; transition: all .15s; }
+.seg button.on { background: var(--card); color: var(--ink); box-shadow: 0 1px 4px rgba(0,0,0,.12); }
+.switch-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.switch-row div b { display: block; font-size: 15px; font-weight: 600; }
+.switch-row div span { font-size: 13px; color: var(--sub); }
+.switch { position: relative; width: 52px; height: 32px; flex: none; }
+.switch input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.switch span { position: absolute; inset: 0; border-radius: 999px; background: var(--line); transition: background .2s; pointer-events: none; }
+.switch span::after { content: ''; position: absolute; top: 3px; left: 3px; width: 26px; height: 26px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.25); transition: transform .2s; }
+.switch input:checked + span { background: var(--ok); }
+.switch input:checked + span::after { transform: translateX(20px); }
+.switch input:focus-visible + span { outline: 2px solid var(--info); outline-offset: 2px; }
+
+/* 명세 */
+.card h2 { margin: 0 0 12px; font-size: 16px; font-weight: 700; }
+.lines { margin: 0; }
+.lines div { display: flex; justify-content: space-between; padding: 9px 0; font-size: 15px; }
+.lines dt { color: var(--sub); }
+.lines dd { margin: 0; font-weight: 600; }
+.lines .plus dd { color: var(--ok); }
+.lines .minus dd { color: var(--bad); }
+.lines .sum { border-top: 1px solid var(--line); margin-top: 6px; padding-top: 14px; }
+.lines .sum dt, .lines .sum dd { color: var(--ink); font-weight: 800; font-size: 17px; }
+.lines .hide { display: none; }
+
+.share { width: 100%; height: 58px; margin-top: 16px; border: 0; border-radius: 18px; background: var(--lime); color: var(--lime-ink); font: inherit; font-size: 17px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.share:active { transform: scale(.98); }
+
+.notes { margin: 20px 4px 0; padding: 0; list-style: none; font-size: 12.5px; line-height: 1.6; color: var(--faint); }
+.notes li::before { content: '· '; }
+.credit { text-align: center; font-size: 12px; color: var(--faint); margin-top: 18px; }
+.credit a { color: inherit; font-weight: 700; }
+
+.toast { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom) + 24px); transform: translate(-50%, 20px); opacity: 0; background: var(--ink); color: var(--card); padding: 12px 18px; border-radius: 999px; font-size: 14px; font-weight: 600; transition: all .25s; pointer-events: none; }
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<main class="app">
+  <header class="top">
+    <img src="icons/icon-192.png" alt="">
+    <div>
+      <h1>알바셈</h1>
+      <p>주휴수당 · 월급 계산기</p>
+    </div>
+    <button class="install" id="install" hidden>앱 설치</button>
+  </header>
+
+  <section class="hero" aria-live="polite">
+    <div class="label"><span>이번 달 예상 <span id="netLabel">월급 (세전)</span></span> <b>2026 기준</b></div>
+    <div class="big"><span id="net">0</span><small>원</small></div>
+    <div class="row">
+      <div class="pill lime"><span>이번 주 주휴수당</span><strong id="holiday">0원</strong></div>
+      <div class="pill"><span>주급 합계</span><strong id="weekly">0원</strong></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="field-head">
+      <label for="wage">시급</label>
+      <button class="chip-btn" id="minBtn" type="button">최저시급 10,320원</button>
+    </div>
+    <div class="input"><input id="wage" inputmode="numeric" autocomplete="off" aria-label="시급"><span>원</span></div>
+
+    <div class="gap"></div>
+    <div class="field-head"><label for="hours">일주일에 일하는 시간</label></div>
+    <div class="hours">
+      <button class="step" type="button" data-step="-1" aria-label="1시간 줄이기">−</button>
+      <div class="input"><input id="hours" inputmode="decimal" autocomplete="off" aria-label="주 근무시간"><span>시간</span></div>
+      <button class="step" type="button" data-step="1" aria-label="1시간 늘리기">+</button>
+    </div>
+    <input type="range" id="range" min="0" max="60" step="1" aria-label="주 근무시간 슬라이더">
+    <div class="ticks"><span>0</span><span>15</span><span>30</span><span>45</span><span>60</span></div>
+    <div class="chips">
+      <button class="chip" data-h="14">14h</button><button class="chip" data-h="15">15h</button>
+      <button class="chip" data-h="20">20h</button><button class="chip" data-h="30">30h</button><button class="chip" data-h="40">40h</button>
+    </div>
+    <div class="status" id="status"></div>
+  </section>
+
+  <section class="card">
+    <div class="field-head"><label>떼는 돈</label></div>
+    <div class="seg" id="deduct">
+      <button data-v="none" class="on">공제 없음</button><button data-v="freelance">3.3%</button><button data-v="insurance">4대보험</button>
+    </div>
+    <div class="gap"></div>
+    <div class="switch-row">
+      <div><b>5인 이상 사업장</b><span>40시간 넘게 일하면 1.5배 연장수당</span></div>
+      <label class="switch"><input type="checkbox" id="overtime" aria-label="5인 이상 사업장"><span></span></label>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>계산 명세</h2>
+    <dl class="lines">
+      <div><dt>주 기본급</dt><dd id="l-base"></dd></div>
+      <div class="plus"><dt id="l-holiday-t">주휴수당</dt><dd id="l-holiday"></dd></div>
+      <div class="plus" id="row-extra"><dt>연장 가산 (0.5배)</dt><dd id="l-extra"></dd></div>
+      <div><dt>주급 합계</dt><dd id="l-weekly"></dd></div>
+      <div><dt>× 한 달 평균 4.345주</dt><dd id="l-gross"></dd></div>
+      <div class="minus" id="row-tax"><dt id="l-tax-t">공제</dt><dd id="l-tax"></dd></div>
+      <div class="sum"><dt>예상 월급</dt><dd id="l-net"></dd></div>
+    </dl>
+    <button class="share" id="share" type="button">결과 공유하기</button>
+  </section>
+
+  <ul class="notes">
+    <li>주휴수당 = (주 근무시간 ÷ 40) × 8시간 × 시급. 주 15시간 이상, 약속한 날 모두 출근했을 때 받아요.</li>
+    <li>40시간을 넘어도 주휴수당은 8시간분까지만 나와요.</li>
+    <li>4대보험은 2026년 근로자 부담률(약 9.72%) 기준이고 소득세는 빠져 있어요.</li>
+    <li>야간·휴일 가산은 계산에 넣지 않았어요. 실제 금액은 근로계약서와 급여명세서로 확인하세요.</li>
+  </ul>
+  <p class="credit">made with AI by <a href="https://www.instagram.com/vibecode.note/" target="_blank" rel="noopener">@vibecode.note</a></p>
+</main>
+<div class="toast" id="toast" role="status"></div>
+
+<script type="module">
+import { calc, MIN_WAGE, DEDUCT } from './calc.js';
+
+const $ = (id) => document.getElementById(id);
+const won = (n) => n.toLocaleString('ko-KR');
+const KEY = 'albasem-v1';
+const state = { wage: MIN_WAGE, hours: 20, deduct: 'none', overtime: false };
+try { Object.assign(state, JSON.parse(localStorage.getItem(KEY)) || {}); } catch {}
+
+const buzz = () => navigator.vibrate?.(8);
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// 큰 숫자는 굴러가듯이
+let shown = 0, raf;
+function rollTo(target) {
+  cancelAnimationFrame(raf);
+  if (reduce || !rollTo.ready) { $('net').textContent = won(target); shown = target; rollTo.ready = true; return; }
+  const from = shown, t0 = performance.now();
+  const tick = (t) => {
+    const k = Math.min(1, Math.max(0, (t - t0) / 380)), e = 1 - (1 - k) ** 3; // rAF 시각이 t0보다 이를 수 있음
+    shown = Math.round(from + (target - from) * e);
+    $('net').textContent = won(shown);
+    if (k < 1) raf = requestAnimationFrame(tick);
+  };
+  raf = requestAnimationFrame(tick);
+}
+
+function render(fromInput) {
+  const r = calc(state);
+  if (fromInput !== 'wage') $('wage').value = state.wage ? won(state.wage) : '';
+  if (fromInput !== 'hours') $('hours').value = state.hours;
+  const range = $('range');
+  range.value = Math.min(60, state.hours);
+  range.style.setProperty('--p', (Math.min(60, state.hours) / 60) * 100 + '%');
+  document.querySelectorAll('.chip').forEach((c) => c.classList.toggle('on', +c.dataset.h === +state.hours));
+  $('minBtn').classList.toggle('on', state.wage === MIN_WAGE);
+  document.querySelectorAll('#deduct button').forEach((b) => b.classList.toggle('on', b.dataset.v === state.deduct));
+  $('overtime').checked = state.overtime;
+
+  rollTo(r.net);
+  $('netLabel').textContent = state.deduct === 'none' ? '월급 (세전)' : '실수령';
+  $('holiday').textContent = won(r.holiday) + '원';
+  $('weekly').textContent = won(r.weekly) + '원';
+
+  $('l-base').textContent = won(r.base) + '원';
+  $('l-holiday-t').textContent = `주휴수당 (${+r.holidayHours.toFixed(1)}시간)`;
+  $('l-holiday').textContent = '+' + won(r.holiday) + '원';
+  $('row-extra').classList.toggle('hide', !r.extra);
+  $('l-extra').textContent = '+' + won(r.extra) + '원';
+  $('l-weekly').textContent = won(r.weekly) + '원';
+  $('l-gross').textContent = won(r.gross) + '원';
+  $('row-tax').classList.toggle('hide', !r.tax);
+  $('l-tax-t').textContent = `공제 (${DEDUCT[state.deduct].label})`;
+  $('l-tax').textContent = '−' + won(r.tax) + '원';
+  $('l-net').textContent = won(r.net) + '원';
+
+  // 상태 안내: 가장 중요한 것 하나만
+  const s = $('status');
+  let cls, html;
+  if (r.belowMin) [cls, html] = ['bad', `시급이 <b>2026 최저시급(10,320원)</b>보다 낮아요. 최저시급 위반일 수 있어요.`];
+  else if (r.overLegal) [cls, html] = ['bad', `주 <b>52시간</b>을 넘었어요. 법정 최대 근로시간 초과예요.`];
+  else if (!state.hours) [cls, html] = ['info', `일주일에 몇 시간 일하는지 넣어 주세요.`];
+  else if (!r.eligible) [cls, html] = ['warn', `주휴수당까지 <b>${+r.shortBy.toFixed(1)}시간</b> 모자라요. 주 15시간부터 받을 수 있어요.`];
+  else if (state.hours > 40) [cls, html] = ['info', state.overtime ? `40시간 넘은 <b>${state.hours - 40}시간</b>은 1.5배로 계산했어요. 주휴수당은 8시간분까지만 나와요.` : `40시간 넘은 시간은 5인 이상 사업장이면 <b>1.5배</b>예요. 아래 스위치를 켜 보세요.`];
+  else [cls, html] = ['ok', `주휴수당 받을 수 있어요! 이번 주 <b>+${won(r.holiday)}원</b>`];
+  s.className = 'status ' + cls;
+  s.innerHTML = `<i>${{ ok: '✓', warn: '!', info: 'i', bad: '!' }[cls]}</i><span>${html}</span>`;
+
+  try { localStorage.setItem(KEY, JSON.stringify(state)); } catch {}
+}
+
+const num = (v) => +String(v).replace(/[^\d.]/g, '') || 0;
+$('wage').addEventListener('input', (e) => {
+  state.wage = Math.round(num(e.target.value));
+  e.target.value = state.wage ? won(state.wage) : '';
+  render('wage');
+});
+$('hours').addEventListener('input', (e) => { state.hours = Math.min(168, num(e.target.value)); render('hours'); });
+$('hours').addEventListener('blur', () => render());
+$('range').addEventListener('input', (e) => { state.hours = +e.target.value; buzz(); render(); });
+document.querySelectorAll('.step').forEach((b) => b.addEventListener('click', () => {
+  state.hours = Math.max(0, Math.min(168, Math.round(state.hours) + +b.dataset.step)); buzz(); render();
+}));
+document.querySelectorAll('.chip').forEach((c) => c.addEventListener('click', () => { state.hours = +c.dataset.h; buzz(); render(); }));
+$('minBtn').addEventListener('click', () => { state.wage = MIN_WAGE; buzz(); render(); });
+document.querySelectorAll('#deduct button').forEach((b) => b.addEventListener('click', () => { state.deduct = b.dataset.v; buzz(); render(); }));
+$('overtime').addEventListener('change', (e) => { state.overtime = e.target.checked; buzz(); render(); });
+
+function toast(msg) {
+  const t = $('toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove('show'), 1800);
+}
+$('share').addEventListener('click', async () => {
+  const r = calc(state);
+  const text = `[알바셈] 시급 ${won(state.wage)}원 × 주 ${state.hours}시간\n이번 주 주휴수당 ${won(r.holiday)}원\n이번 달 예상 ${state.deduct === 'none' ? '월급' : '실수령'} ${won(r.net)}원`;
+  const url = location.href.split('?')[0];
+  try {
+    if (navigator.share) await navigator.share({ title: '알바셈', text, url });
+    else { await navigator.clipboard.writeText(`${text}\n${url}`); toast('결과를 복사했어요'); }
+  } catch (e) { if (e.name !== 'AbortError') toast('공유하지 못했어요'); }
+});
+
+// 설치 버튼 (안드로이드 크롬)
+let deferred;
+addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferred = e; $('install').hidden = false; });
+$('install').addEventListener('click', async () => { if (!deferred) return; deferred.prompt(); await deferred.userChoice; deferred = null; $('install').hidden = true; });
+
+if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js');
+render();
+</script>
+</body>
+</html>
